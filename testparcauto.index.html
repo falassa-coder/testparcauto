@@ -15,25 +15,22 @@
        comme pour Civicum où tout était dans un seul fichier).
   ============================================================ -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
     import {
       getFirestore,
       collection,
       addDoc,
       getDocs,
-    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
 
-    // ============================================================
-    // 🔧 À REMPLACER : copie ces valeurs depuis la console Firebase
-    // (Paramètres du projet ⚙️ → Général → tes applications → SDK config)
-    // ============================================================
+    // Config réelle du projet "parc-auto-19b48"
     const firebaseConfig = {
-      apiKey: "TA_CLE_API",
-      authDomain: "TON_PROJET.firebaseapp.com",
-      projectId: "TON_PROJET",
-      storageBucket: "TON_PROJET.appspot.com",
-      messagingSenderId: "TON_ID",
-      appId: "TON_APP_ID",
+      apiKey: "AIzaSyCHwyLj90IFVp25Xz6qWFrh8612vj4QQ0s",
+      authDomain: "parc-auto-19b48.firebaseapp.com",
+      projectId: "parc-auto-19b48",
+      storageBucket: "parc-auto-19b48.firebasestorage.app",
+      messagingSenderId: "1015165261940",
+      appId: "1:1015165261940:web:37d0c01d46609e13871921",
     };
 
     const app = initializeApp(firebaseConfig);
@@ -69,22 +66,3 @@
   </script>
 </body>
 </html>
-<script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
-
-  // Your web app's Firebase configuration
-  const firebaseConfig = {
-    apiKey: "AIzaSyCHwyLj90IFVp25Xz6qWFrh8612vj4QQ0s",
-    authDomain: "parc-auto-19b48.firebaseapp.com",
-    projectId: "parc-auto-19b48",
-    storageBucket: "parc-auto-19b48.firebasestorage.app",
-    messagingSenderId: "1015165261940",
-    appId: "1:1015165261940:web:37d0c01d46609e13871921"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-</script>
