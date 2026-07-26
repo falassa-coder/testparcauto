@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Back-office — Parc Auto Mali</title>
+<title>Admin — Parc Auto Mali</title>
 <style>
   * { box-sizing: border-box; }
   body {
@@ -29,9 +29,7 @@
     font-size: 14px; margin: 0 0 14px; color: #0f172a;
     display: flex; align-items: center; gap: 6px;
   }
-  .grille-champs {
-    display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
-  }
+  .grille-champs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
   input {
     width: 100%; border: 1px solid #cbd5e1; border-radius: 8px;
     padding: 9px 10px; font-size: 14px; background: #fff;
@@ -46,6 +44,7 @@
   button:hover { opacity: 0.85; }
   .btn-principal { background: #0f172a; color: white; }
   .btn-secondaire { background: white; border: 1px solid #cbd5e1; color: #334155; }
+  .btn-deconnexion { background: #fef2f2; color: #dc2626; font-size: 12.5px; padding: 6px 12px; }
 
   .erreur { color: #dc2626; font-size: 13px; margin-top: 8px; }
   .chargement { color: #94a3b8; font-size: 13px; }
@@ -60,10 +59,7 @@
   .marque { font-weight: 600; font-size: 14.5px; }
   .details { font-size: 12.5px; color: #64748b; margin-top: 2px; }
   .icones { display: flex; gap: 4px; flex-shrink: 0; }
-  .icone-btn {
-    background: transparent; border-radius: 8px; padding: 7px;
-    color: #64748b; font-size: 15px; line-height: 1;
-  }
+  .icone-btn { background: transparent; border-radius: 8px; padding: 7px; color: #64748b; font-size: 15px; line-height: 1; }
   .icone-btn:hover { background: #f1f5f9; }
   .icone-btn.supprimer:hover { background: #fef2f2; color: #dc2626; }
 
@@ -72,45 +68,77 @@
     background: white; border: 1px dashed #cbd5e1; border-radius: 12px;
   }
   .note-bas { font-size: 12px; color: #94a3b8; margin-top: 20px; line-height: 1.6; }
+
+  #ecranConnexion {
+    max-width: 360px; margin: 60px auto; background: white;
+    border: 1px solid #e2e8f0; border-radius: 14px; padding: 24px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  #ecranConnexion h1 { font-size: 20px; text-align: center; }
+  #ecranConnexion .sous-titre { text-align: center; margin-bottom: 20px; }
+  #ecranConnexion input { margin-bottom: 10px; }
+  #ecranConnexion button { width: 100%; padding: 10px; }
+
+  .entete-admin { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+  #contenuAdmin { display: none; }
 </style>
 </head>
 <body>
-  <div class="conteneur">
-    <p class="eyebrow">Back-office — connecté à Firestore</p>
-    <h1>Parc Auto — Gestion du catalogue</h1>
-    <p class="sous-titre">
-      Cette fois, chaque action (ajouter, modifier, supprimer) écrit
-      réellement dans ta base Firestore — les données restent, même si
-      tu recharges la page ou changes d'appareil.
-    </p>
 
-    <div class="carte">
-      <h2 id="titreFormulaire">➕ Ajouter un véhicule</h2>
-      <div class="grille-champs">
-        <input id="champMarque" placeholder="Marque / modèle" style="grid-column: span 2;" />
-        <input id="champPrix" type="number" placeholder="Prix (FCFA)" />
-        <input id="champAnnee" type="number" placeholder="Année" />
-        <input id="champKm" type="number" placeholder="Kilométrage" style="grid-column: span 2;" />
+  <div id="ecranConnexion">
+    <p class="eyebrow" style="text-align:center;">Parc Auto Mali</p>
+    <h1>Connexion admin</h1>
+    <p class="sous-titre">Accès réservé à la gestion du catalogue.</p>
+    <input id="champEmail" type="email" placeholder="Adresse email" />
+    <input id="champMotDePasse" type="password" placeholder="Mot de passe" />
+    <div id="erreurConnexion" class="erreur" style="margin-bottom:10px;"></div>
+    <button id="btnConnexion" class="btn-principal">Se connecter</button>
+  </div>
+
+  <div id="contenuAdmin">
+    <div class="conteneur">
+      <div class="entete-admin">
+        <div>
+          <p class="eyebrow">Back-office — connecté à Firestore</p>
+          <h1>Parc Auto — Gestion du catalogue</h1>
+        </div>
+        <button id="btnDeconnexion" class="btn-deconnexion">Se déconnecter</button>
       </div>
-      <div id="zoneErreur" class="erreur"></div>
-      <div class="actions">
-        <button id="btnValider" class="btn-principal">Ajouter au catalogue</button>
-        <button id="btnAnnuler" class="btn-secondaire" style="display:none;">Annuler</button>
+      <p class="sous-titre" id="texteBienvenue"></p>
+
+      <div class="carte">
+        <h2 id="titreFormulaire">➕ Ajouter un véhicule</h2>
+        <div class="grille-champs">
+          <input id="champMarque" placeholder="Marque / modèle" style="grid-column: span 2;" />
+          <input id="champPrix" type="number" placeholder="Prix (FCFA)" />
+          <input id="champAnnee" type="number" placeholder="Année" />
+          <input id="champKm" type="number" placeholder="Kilométrage" style="grid-column: span 2;" />
+        </div>
+        <div id="zoneErreur" class="erreur"></div>
+        <div class="actions">
+          <button id="btnValider" class="btn-principal">Ajouter au catalogue</button>
+          <button id="btnAnnuler" class="btn-secondaire" style="display:none;">Annuler</button>
+        </div>
       </div>
+
+      <p class="liste-titre">Véhicules enregistrés</p>
+      <div id="zoneListe" class="chargement">Chargement des véhicules…</div>
+
+      <p class="note-bas">
+        Cette page est maintenant protégée par Firebase Authentication —
+        seul un compte créé dans la console Firebase peut s'y connecter.
+      </p>
     </div>
-
-    <p class="liste-titre" id="titreListe">Véhicules enregistrés</p>
-    <div id="zoneListe" class="chargement">Chargement des véhicules…</div>
-
-    <p class="note-bas">
-      Les 3 opérations de base d'un back-office : <strong>Créer</strong>
-      (formulaire), <strong>Modifier</strong> (crayon), <strong>Supprimer</strong>
-      (corbeille) — chacune envoie maintenant une vraie requête à Firestore.
-    </p>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+    import {
+      getAuth,
+      signInWithEmailAndPassword,
+      signOut,
+      onAuthStateChanged,
+    } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
     import {
       getFirestore,
       collection,
@@ -131,10 +159,19 @@
     };
 
     const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
     const db = getFirestore(app);
     const refCollection = collection(db, "vehicules");
 
-    // ---- Références aux éléments HTML ----
+    const ecranConnexion = document.getElementById("ecranConnexion");
+    const contenuAdmin = document.getElementById("contenuAdmin");
+    const champEmail = document.getElementById("champEmail");
+    const champMotDePasse = document.getElementById("champMotDePasse");
+    const erreurConnexion = document.getElementById("erreurConnexion");
+    const btnConnexion = document.getElementById("btnConnexion");
+    const btnDeconnexion = document.getElementById("btnDeconnexion");
+    const texteBienvenue = document.getElementById("texteBienvenue");
+
     const champMarque = document.getElementById("champMarque");
     const champPrix = document.getElementById("champPrix");
     const champAnnee = document.getElementById("champAnnee");
@@ -146,6 +183,33 @@
     const titreFormulaire = document.getElementById("titreFormulaire");
 
     let idEnCoursDeModification = null;
+    let arreterEcoute = null;
+
+    btnConnexion.addEventListener("click", async () => {
+      erreurConnexion.textContent = "";
+      try {
+        await signInWithEmailAndPassword(auth, champEmail.value.trim(), champMotDePasse.value);
+      } catch (erreur) {
+        erreurConnexion.textContent = "Email ou mot de passe incorrect.";
+      }
+    });
+
+    btnDeconnexion.addEventListener("click", () => signOut(auth));
+
+    onAuthStateChanged(auth, (utilisateur) => {
+      if (utilisateur) {
+        ecranConnexion.style.display = "none";
+        contenuAdmin.style.display = "block";
+        texteBienvenue.textContent = "Connecté en tant que " + utilisateur.email;
+        demarrerEcouteVehicules();
+      } else {
+        ecranConnexion.style.display = "block";
+        contenuAdmin.style.display = "none";
+        champEmail.value = "";
+        champMotDePasse.value = "";
+        if (arreterEcoute) arreterEcoute();
+      }
+    });
 
     function viderFormulaire() {
       champMarque.value = "";
@@ -159,7 +223,6 @@
       btnAnnuler.style.display = "none";
     }
 
-    // ---- CREATE / UPDATE ----
     btnValider.addEventListener("click", async () => {
       const marque = champMarque.value.trim();
       const prix = Number(champPrix.value);
@@ -174,16 +237,9 @@
       btnValider.disabled = true;
       try {
         if (idEnCoursDeModification) {
-          // UPDATE
-          await updateDoc(doc(db, "vehicules", idEnCoursDeModification), {
-            marque, prix, annee, km,
-          });
+          await updateDoc(doc(db, "vehicules", idEnCoursDeModification), { marque, prix, annee, km });
         } else {
-          // CREATE
-          await addDoc(refCollection, {
-            marque, prix, annee, km,
-            creeLe: new Date().toISOString(),
-          });
+          await addDoc(refCollection, { marque, prix, annee, km, creeLe: new Date().toISOString() });
         }
         viderFormulaire();
       } catch (erreur) {
@@ -194,7 +250,6 @@
 
     btnAnnuler.addEventListener("click", viderFormulaire);
 
-    // ---- DELETE ----
     window.supprimerVehicule = async (id) => {
       if (!confirm("Supprimer ce véhicule ?")) return;
       try {
@@ -205,7 +260,6 @@
       }
     };
 
-    // ---- Préparer le formulaire pour une modification ----
     window.modifierVehicule = (id, marque, prix, annee, km) => {
       idEnCoursDeModification = id;
       champMarque.value = marque;
@@ -218,40 +272,39 @@
       window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
-    // ---- READ en temps réel : la liste se met à jour automatiquement ----
-    onSnapshot(refCollection, (snapshot) => {
-      if (snapshot.empty) {
-        zoneListe.innerHTML = `<div class="vide">Aucun véhicule pour le moment — ajoute-en un ci-dessus.</div>`;
-        return;
-      }
-
-      zoneListe.innerHTML = "";
-      snapshot.forEach((docSnap) => {
-        const v = docSnap.data();
-        const id = docSnap.id;
-
-        const ligne = document.createElement("div");
-        ligne.className = "ligne-vehicule";
-        ligne.innerHTML = `
-          <div class="info-vehicule">
-            <div class="marque">${v.marque}</div>
-            <div class="details">
-              ${v.annee} · ${Number(v.km).toLocaleString("fr-FR")} km ·
-              ${Number(v.prix).toLocaleString("fr-FR")} FCFA
+    function demarrerEcouteVehicules() {
+      arreterEcoute = onSnapshot(refCollection, (snapshot) => {
+        if (snapshot.empty) {
+          zoneListe.innerHTML = `<div class="vide">Aucun véhicule pour le moment — ajoute-en un ci-dessus.</div>`;
+          return;
+        }
+        zoneListe.innerHTML = "";
+        snapshot.forEach((docSnap) => {
+          const v = docSnap.data();
+          const id = docSnap.id;
+          const ligne = document.createElement("div");
+          ligne.className = "ligne-vehicule";
+          ligne.innerHTML = `
+            <div class="info-vehicule">
+              <div class="marque">${v.marque}</div>
+              <div class="details">
+                ${v.annee} · ${Number(v.km).toLocaleString("fr-FR")} km ·
+                ${Number(v.prix).toLocaleString("fr-FR")} FCFA
+              </div>
             </div>
-          </div>
-          <div class="icones">
-            <button class="icone-btn" title="Modifier"
-              onclick="modifierVehicule('${id}', '${v.marque.replace(/'/g, "\\'")}', ${v.prix}, ${v.annee}, ${v.km})">✏️</button>
-            <button class="icone-btn supprimer" title="Supprimer"
-              onclick="supprimerVehicule('${id}')">🗑️</button>
-          </div>
-        `;
-        zoneListe.appendChild(ligne);
+            <div class="icones">
+              <button class="icone-btn" title="Modifier"
+                onclick="modifierVehicule('${id}', '${v.marque.replace(/'/g, "\\'")}', ${v.prix}, ${v.annee}, ${v.km})">✏️</button>
+              <button class="icone-btn supprimer" title="Supprimer"
+                onclick="supprimerVehicule('${id}')">🗑️</button>
+            </div>
+          `;
+          zoneListe.appendChild(ligne);
+        });
+      }, (erreur) => {
+        zoneListe.innerHTML = `<div class="erreur">Erreur de lecture : ${erreur.message}</div>`;
       });
-    }, (erreur) => {
-      zoneListe.innerHTML = `<div class="erreur">Erreur de lecture : ${erreur.message}</div>`;
-    });
+    }
   </script>
 </body>
 </html>
