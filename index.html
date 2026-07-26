@@ -8,27 +8,27 @@
   * { box-sizing: border-box; }
   body {
     font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-    background: #f1f5f9;
-    margin: 0;
-    padding: 24px 16px;
-    color: #1e293b;
+    background: #f1f5f9; margin: 0; padding: 24px 16px; color: #1e293b;
   }
   .conteneur { max-width: 720px; margin: 0 auto; }
-  .eyebrow {
-    font-size: 12px; font-weight: 700; letter-spacing: 0.06em;
-    text-transform: uppercase; color: #d97706;
-  }
+  .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #d97706; }
   h1 { margin: 4px 0 8px; font-size: 24px; color: #0f172a; }
   .sous-titre { color: #64748b; font-size: 14px; margin-bottom: 24px; }
 
-  .grille-catalogue {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 14px;
-  }
+  .grille-catalogue { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
   .carte-vehicule {
     background: white; border: 1px solid #e2e8f0; border-radius: 14px;
-    padding: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.04);
   }
+  .photo-vehicule {
+    width: 100%; height: 140px; object-fit: cover; background: #e2e8f0;
+    display: block;
+  }
+  .photo-vide {
+    width: 100%; height: 140px; background: #e2e8f0; display: flex;
+    align-items: center; justify-content: center; font-size: 34px;
+  }
+  .contenu-carte { padding: 14px 16px; }
   .marque { font-weight: 700; font-size: 16px; color: #0f172a; }
   .prix { font-weight: 700; font-size: 18px; color: #d97706; margin: 6px 0; }
   .details { font-size: 13px; color: #64748b; margin-bottom: 12px; }
@@ -39,10 +39,7 @@
   }
   .btn-whatsapp:hover { opacity: 0.9; }
 
-  .vide {
-    text-align: center; padding: 40px 20px; color: #94a3b8; font-size: 14px;
-    background: white; border: 1px dashed #cbd5e1; border-radius: 12px;
-  }
+  .vide { text-align: center; padding: 40px 20px; color: #94a3b8; font-size: 14px; background: white; border: 1px dashed #cbd5e1; border-radius: 12px; }
   .chargement { color: #94a3b8; font-size: 14px; text-align: center; padding: 30px; }
 </style>
 </head>
@@ -58,13 +55,10 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
     import {
-      getFirestore,
-      collection,
-      onSnapshot,
+      getFirestore, collection, onSnapshot,
     } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
 
-    // 🔧 Numéro WhatsApp du parc auto (format international, sans le +)
-    const NUMERO_WHATSAPP = "0033651460972"; // à remplacer par le vrai numéro
+    const NUMERO_WHATSAPP = "22300000000"; // ton vrai numéro (déjà corrigé chez toi)
 
     const firebaseConfig = {
       apiKey: "AIzaSyCHwyLj90IFVp25Xz6qWFrh8612vj4QQ0s",
@@ -79,7 +73,6 @@
     const db = getFirestore(app);
     const zoneCatalogue = document.getElementById("zoneCatalogue");
 
-    // ---- Lecture seule, en temps réel : aucun bouton modifier/supprimer ici ----
     onSnapshot(collection(db, "vehicules"), (snapshot) => {
       if (snapshot.empty) {
         zoneCatalogue.innerHTML = `<div class="vide">Aucun véhicule disponible pour le moment.</div>`;
@@ -94,17 +87,23 @@
         const message = encodeURIComponent(
           `Bonjour, je suis intéressé(e) par le véhicule : ${v.marque} (${v.annee}).`
         );
+        const photo = v.photoUrl
+          ? `<img class="photo-vehicule" src="${v.photoUrl}" alt="${v.marque}" />`
+          : `<div class="photo-vide">🚗</div>`;
 
         const carte = document.createElement("div");
         carte.className = "carte-vehicule";
         carte.innerHTML = `
-          <div class="marque">${v.marque}</div>
-          <div class="prix">${Number(v.prix).toLocaleString("fr-FR")} FCFA</div>
-          <div class="details">${v.annee} · ${Number(v.km).toLocaleString("fr-FR")} km</div>
-          <a class="btn-whatsapp" target="_blank"
-             href="https://wa.me/${NUMERO_WHATSAPP}?text=${message}">
-            💬 Contacter sur WhatsApp
-          </a>
+          ${photo}
+          <div class="contenu-carte">
+            <div class="marque">${v.marque}</div>
+            <div class="prix">${Number(v.prix).toLocaleString("fr-FR")} FCFA</div>
+            <div class="details">${v.annee} · ${Number(v.km).toLocaleString("fr-FR")} km</div>
+            <a class="btn-whatsapp" target="_blank"
+               href="https://wa.me/${NUMERO_WHATSAPP}?text=${message}">
+              💬 Contacter sur WhatsApp
+            </a>
+          </div>
         `;
         zoneCatalogue.appendChild(carte);
       });
