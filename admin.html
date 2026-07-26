@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Back-office — Parc Auto Mali</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    background: #f1f5f9;
+    margin: 0;
+    padding: 24px 16px;
+    color: #1e293b;
+  }
+  .conteneur { max-width: 720px; margin: 0 auto; }
+  .eyebrow {
+    font-size: 12px; font-weight: 700; letter-spacing: 0.06em;
+    text-transform: uppercase; color: #d97706;
+  }
+  h1 { margin: 4px 0 8px; font-size: 24px; color: #0f172a; }
+  .sous-titre { color: #64748b; font-size: 14px; margin-bottom: 20px; }
+
+  .carte {
+    background: white; border: 1px solid #e2e8f0; border-radius: 14px;
+    padding: 18px; margin-bottom: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  .carte h2 {
+    font-size: 14px; margin: 0 0 14px; color: #0f172a;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .grille-champs {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+  }
+  input {
+    width: 100%; border: 1px solid #cbd5e1; border-radius: 8px;
+    padding: 9px 10px; font-size: 14px; background: #fff;
+  }
+  input:focus { outline: 2px solid #d97706; border-color: transparent; }
+
+  .actions { margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap; }
+  button {
+    border: none; border-radius: 8px; padding: 9px 16px; font-size: 14px;
+    font-weight: 600; cursor: pointer; transition: opacity .15s;
+  }
+  button:hover { opacity: 0.85; }
+  .btn-principal { background: #0f172a; color: white; }
+  .btn-secondaire { background: white; border: 1px solid #cbd5e1; color: #334155; }
+
+  .erreur { color: #dc2626; font-size: 13px; margin-top: 8px; }
+  .chargement { color: #94a3b8; font-size: 13px; }
+
+  .liste-titre { font-size: 14px; font-weight: 600; margin: 0 0 10px; color: #0f172a; }
+  .ligne-vehicule {
+    background: white; border: 1px solid #e2e8f0; border-radius: 12px;
+    padding: 12px 14px; margin-bottom: 8px; display: flex;
+    align-items: center; justify-content: space-between; gap: 10px;
+  }
+  .info-vehicule { min-width: 0; }
+  .marque { font-weight: 600; font-size: 14.5px; }
+  .details { font-size: 12.5px; color: #64748b; margin-top: 2px; }
+  .icones { display: flex; gap: 4px; flex-shrink: 0; }
+  .icone-btn {
+    background: transparent; border-radius: 8px; padding: 7px;
+    color: #64748b; font-size: 15px; line-height: 1;
+  }
+  .icone-btn:hover { background: #f1f5f9; }
+  .icone-btn.supprimer:hover { background: #fef2f2; color: #dc2626; }
+
+  .vide {
+    text-align: center; padding: 30px; color: #94a3b8; font-size: 13.5px;
+    background: white; border: 1px dashed #cbd5e1; border-radius: 12px;
+  }
+  .note-bas { font-size: 12px; color: #94a3b8; margin-top: 20px; line-height: 1.6; }
+</style>
+</head>
+<body>
+  <div class="conteneur">
+    <p class="eyebrow">Back-office — connecté à Firestore</p>
+    <h1>Parc Auto — Gestion du catalogue</h1>
+    <p class="sous-titre">
+      Cette fois, chaque action (ajouter, modifier, supprimer) écrit
+      réellement dans ta base Firestore — les données restent, même si
+      tu recharges la page ou changes d'appareil.
+    </p>
+
+    <div class="carte">
+      <h2 id="titreFormulaire">➕ Ajouter un véhicule</h2>
+      <div class="grille-champs">
+        <input id="champMarque" placeholder="Marque / modèle" style="grid-column: span 2;" />
+        <input id="champPrix" type="number" placeholder="Prix (FCFA)" />
+        <input id="champAnnee" type="number" placeholder="Année" />
+        <input id="champKm" type="number" placeholder="Kilométrage" style="grid-column: span 2;" />
+      </div>
+      <div id="zoneErreur" class="erreur"></div>
+      <div class="actions">
+        <button id="btnValider" class="btn-principal">Ajouter au catalogue</button>
+        <button id="btnAnnuler" class="btn-secondaire" style="display:none;">Annuler</button>
+      </div>
+    </div>
+
+    <p class="liste-titre" id="titreListe">Véhicules enregistrés</p>
+    <div id="zoneListe" class="chargement">Chargement des véhicules…</div>
+
+    <p class="note-bas">
+      Les 3 opérations de base d'un back-office : <strong>Créer</strong>
+      (formulaire), <strong>Modifier</strong> (crayon), <strong>Supprimer</strong>
+      (corbeille) — chacune envoie maintenant une vraie requête à Firestore.
+    </p>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      updateDoc,
+      deleteDoc,
+      doc,
+      onSnapshot,
+    } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCHwyLj90IFVp25Xz6qWFrh8612vj4QQ0s",
+      authDomain: "parc-auto-19b48.firebaseapp.com",
+      projectId: "parc-auto-19b48",
+      storageBucket: "parc-auto-19b48.firebasestorage.app",
+      messagingSenderId: "1015165261940",
+      appId: "1:1015165261940:web:37d0c01d46609e13871921",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const refCollection = collection(db, "vehicules");
+
+    // ---- Références aux éléments HTML ----
+    const champMarque = document.getElementById("champMarque");
+    const champPrix = document.getElementById("champPrix");
+    const champAnnee = document.getElementById("champAnnee");
+    const champKm = document.getElementById("champKm");
+    const zoneErreur = document.getElementById("zoneErreur");
+    const zoneListe = document.getElementById("zoneListe");
+    const btnValider = document.getElementById("btnValider");
+    const btnAnnuler = document.getElementById("btnAnnuler");
+    const titreFormulaire = document.getElementById("titreFormulaire");
+
+    let idEnCoursDeModification = null;
+
+    function viderFormulaire() {
+      champMarque.value = "";
+      champPrix.value = "";
+      champAnnee.value = "";
+      champKm.value = "";
+      zoneErreur.textContent = "";
+      idEnCoursDeModification = null;
+      titreFormulaire.textContent = "➕ Ajouter un véhicule";
+      btnValider.textContent = "Ajouter au catalogue";
+      btnAnnuler.style.display = "none";
+    }
+
+    // ---- CREATE / UPDATE ----
+    btnValider.addEventListener("click", async () => {
+      const marque = champMarque.value.trim();
+      const prix = Number(champPrix.value);
+      const annee = Number(champAnnee.value);
+      const km = Number(champKm.value);
+
+      if (!marque || !prix || !annee || !km) {
+        zoneErreur.textContent = "Merci de remplir tous les champs.";
+        return;
+      }
+
+      btnValider.disabled = true;
+      try {
+        if (idEnCoursDeModification) {
+          // UPDATE
+          await updateDoc(doc(db, "vehicules", idEnCoursDeModification), {
+            marque, prix, annee, km,
+          });
+        } else {
+          // CREATE
+          await addDoc(refCollection, {
+            marque, prix, annee, km,
+            creeLe: new Date().toISOString(),
+          });
+        }
+        viderFormulaire();
+      } catch (erreur) {
+        zoneErreur.textContent = "Erreur : " + erreur.message;
+      }
+      btnValider.disabled = false;
+    });
+
+    btnAnnuler.addEventListener("click", viderFormulaire);
+
+    // ---- DELETE ----
+    window.supprimerVehicule = async (id) => {
+      if (!confirm("Supprimer ce véhicule ?")) return;
+      try {
+        await deleteDoc(doc(db, "vehicules", id));
+        if (idEnCoursDeModification === id) viderFormulaire();
+      } catch (erreur) {
+        alert("Erreur : " + erreur.message);
+      }
+    };
+
+    // ---- Préparer le formulaire pour une modification ----
+    window.modifierVehicule = (id, marque, prix, annee, km) => {
+      idEnCoursDeModification = id;
+      champMarque.value = marque;
+      champPrix.value = prix;
+      champAnnee.value = annee;
+      champKm.value = km;
+      titreFormulaire.textContent = "✏️ Modifier le véhicule";
+      btnValider.textContent = "Enregistrer les modifications";
+      btnAnnuler.style.display = "inline-block";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+
+    // ---- READ en temps réel : la liste se met à jour automatiquement ----
+    onSnapshot(refCollection, (snapshot) => {
+      if (snapshot.empty) {
+        zoneListe.innerHTML = `<div class="vide">Aucun véhicule pour le moment — ajoute-en un ci-dessus.</div>`;
+        return;
+      }
+
+      zoneListe.innerHTML = "";
+      snapshot.forEach((docSnap) => {
+        const v = docSnap.data();
+        const id = docSnap.id;
+
+        const ligne = document.createElement("div");
+        ligne.className = "ligne-vehicule";
+        ligne.innerHTML = `
+          <div class="info-vehicule">
+            <div class="marque">${v.marque}</div>
+            <div class="details">
+              ${v.annee} · ${Number(v.km).toLocaleString("fr-FR")} km ·
+              ${Number(v.prix).toLocaleString("fr-FR")} FCFA
+            </div>
+          </div>
+          <div class="icones">
+            <button class="icone-btn" title="Modifier"
+              onclick="modifierVehicule('${id}', '${v.marque.replace(/'/g, "\\'")}', ${v.prix}, ${v.annee}, ${v.km})">✏️</button>
+            <button class="icone-btn supprimer" title="Supprimer"
+              onclick="supprimerVehicule('${id}')">🗑️</button>
+          </div>
+        `;
+        zoneListe.appendChild(ligne);
+      });
+    }, (erreur) => {
+      zoneListe.innerHTML = `<div class="erreur">Erreur de lecture : ${erreur.message}</div>`;
+    });
+  </script>
+</body>
+</html>
