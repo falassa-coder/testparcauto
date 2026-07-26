@@ -10,24 +10,35 @@
     font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
     background: #f1f5f9; margin: 0; padding: 24px 16px; color: #1e293b;
   }
-  .conteneur { max-width: 720px; margin: 0 auto; }
+  .conteneur { max-width: 900px; margin: 0 auto; }
   .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #d97706; }
   h1 { margin: 4px 0 8px; font-size: 24px; color: #0f172a; }
-  .sous-titre { color: #64748b; font-size: 14px; margin-bottom: 24px; }
+  .sous-titre { color: #64748b; font-size: 14px; margin-bottom: 20px; }
+
+  /* ---- Barre de filtres ---- */
+  .barre-filtres {
+    background: white; border: 1px solid #e2e8f0; border-radius: 14px;
+    padding: 14px; margin-bottom: 20px; display: grid;
+    grid-template-columns: repeat(2, 1fr); gap: 10px;
+  }
+  .barre-filtres select, .barre-filtres input {
+    width: 100%; border: 1px solid #cbd5e1; border-radius: 8px;
+    padding: 9px 10px; font-size: 14px; background: #fff; color: #1e293b;
+  }
+  .champ-prix-annee { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; grid-column: span 2; }
+  .btn-reinitialiser {
+    grid-column: span 2; background: none; border: none; color: #d97706;
+    font-size: 13px; font-weight: 600; cursor: pointer; text-align: left; padding: 2px 0;
+  }
+  .compteur-resultats { font-size: 12.5px; color: #64748b; margin: -8px 0 14px; }
 
   .grille-catalogue { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
   .carte-vehicule {
     background: white; border: 1px solid #e2e8f0; border-radius: 14px;
     overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.04);
   }
-  .photo-vehicule {
-    width: 100%; height: 140px; object-fit: cover; background: #e2e8f0;
-    display: block;
-  }
-  .photo-vide {
-    width: 100%; height: 140px; background: #e2e8f0; display: flex;
-    align-items: center; justify-content: center; font-size: 34px;
-  }
+  .photo-vehicule { width: 100%; height: 140px; object-fit: cover; background: #e2e8f0; display: block; }
+  .photo-vide { width: 100%; height: 140px; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 34px; }
   .contenu-carte { padding: 14px 16px; }
   .marque { font-weight: 700; font-size: 16px; color: #0f172a; }
   .prix { font-weight: 700; font-size: 18px; color: #d97706; margin: 6px 0; }
@@ -41,6 +52,12 @@
 
   .vide { text-align: center; padding: 40px 20px; color: #94a3b8; font-size: 14px; background: white; border: 1px dashed #cbd5e1; border-radius: 12px; }
   .chargement { color: #94a3b8; font-size: 14px; text-align: center; padding: 30px; }
+
+  @media (min-width: 640px) {
+    .barre-filtres { grid-template-columns: repeat(4, 1fr); align-items: center; }
+    .champ-prix-annee { grid-column: span 2; }
+    .btn-reinitialiser { grid-column: auto; text-align: right; }
+  }
 </style>
 </head>
 <body>
@@ -48,6 +65,22 @@
     <p class="eyebrow">Parc Auto Mali</p>
     <h1>Nos véhicules disponibles</h1>
     <p class="sous-titre">Contactez-nous directement sur WhatsApp pour toute question ou visite.</p>
+
+    <div class="barre-filtres">
+      <select id="filtreMarque">
+        <option value="">Toutes les marques</option>
+      </select>
+      <select id="filtreAnnee">
+        <option value="">Toutes les années</option>
+      </select>
+      <div class="champ-prix-annee">
+        <input id="filtrePrixMin" type="number" placeholder="Prix min (FCFA)" />
+        <input id="filtrePrixMax" type="number" placeholder="Prix max (FCFA)" />
+      </div>
+      <button id="btnReinitialiser" class="btn-reinitialiser">Réinitialiser les filtres</button>
+    </div>
+
+    <p class="compteur-resultats" id="compteurResultats"></p>
 
     <div id="zoneCatalogue" class="chargement">Chargement du catalogue…</div>
   </div>
@@ -58,7 +91,7 @@
       getFirestore, collection, onSnapshot,
     } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
 
-    const NUMERO_WHATSAPP = "22300000000"; // ton vrai numéro (déjà corrigé chez toi)
+    const NUMERO_WHATSAPP = "22300000000"; // ton vrai numéro
 
     const firebaseConfig = {
       apiKey: "AIzaSyCHwyLj90IFVp25Xz6qWFrh8612vj4QQ0s",
@@ -71,19 +104,65 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    const zoneCatalogue = document.getElementById("zoneCatalogue");
 
-    onSnapshot(collection(db, "vehicules"), (snapshot) => {
-      if (snapshot.empty) {
-        zoneCatalogue.innerHTML = `<div class="vide">Aucun véhicule disponible pour le moment.</div>`;
+    const zoneCatalogue = document.getElementById("zoneCatalogue");
+    const compteurResultats = document.getElementById("compteurResultats");
+    const filtreMarque = document.getElementById("filtreMarque");
+    const filtreAnnee = document.getElementById("filtreAnnee");
+    const filtrePrixMin = document.getElementById("filtrePrixMin");
+    const filtrePrixMax = document.getElementById("filtrePrixMax");
+    const btnReinitialiser = document.getElementById("btnReinitialiser");
+
+    let tousLesVehicules = []; // liste complète, jamais filtrée elle-même
+
+    // ---- Extrait la "marque" à partir de "Peugeot/3008" ou "Peugeot 3008" ----
+    function extraireMarque(texte) {
+      return texte.split(/[\/\s]/)[0].trim();
+    }
+
+    function remplirOptionsFiltres() {
+      const marques = [...new Set(tousLesVehicules.map((v) => extraireMarque(v.marque)))].sort();
+      const annees = [...new Set(tousLesVehicules.map((v) => v.annee))].sort((a, b) => b - a);
+
+      const marqueSelectionnee = filtreMarque.value;
+      const anneeSelectionnee = filtreAnnee.value;
+
+      filtreMarque.innerHTML = '<option value="">Toutes les marques</option>' +
+        marques.map((m) => `<option value="${m}">${m}</option>`).join("");
+      filtreAnnee.innerHTML = '<option value="">Toutes les années</option>' +
+        annees.map((a) => `<option value="${a}">${a}</option>`).join("");
+
+      filtreMarque.value = marqueSelectionnee;
+      filtreAnnee.value = anneeSelectionnee;
+    }
+
+    function appliquerFiltresEtAfficher() {
+      const marque = filtreMarque.value;
+      const annee = filtreAnnee.value;
+      const prixMin = filtrePrixMin.value ? Number(filtrePrixMin.value) : null;
+      const prixMax = filtrePrixMax.value ? Number(filtrePrixMax.value) : null;
+
+      const resultats = tousLesVehicules.filter((v) => {
+        if (marque && extraireMarque(v.marque) !== marque) return false;
+        if (annee && String(v.annee) !== annee) return false;
+        if (prixMin !== null && v.prix < prixMin) return false;
+        if (prixMax !== null && v.prix > prixMax) return false;
+        return true;
+      });
+
+      compteurResultats.textContent =
+        resultats.length + " véhicule" + (resultats.length > 1 ? "s" : "") + " trouvé" + (resultats.length > 1 ? "s" : "");
+
+      if (resultats.length === 0) {
+        zoneCatalogue.className = "";
+        zoneCatalogue.innerHTML = `<div class="vide">Aucun véhicule ne correspond à ces critères.</div>`;
         return;
       }
 
       zoneCatalogue.className = "grille-catalogue";
       zoneCatalogue.innerHTML = "";
 
-      snapshot.forEach((docSnap) => {
-        const v = docSnap.data();
+      resultats.forEach((v) => {
         const message = encodeURIComponent(
           `Bonjour, je suis intéressé(e) par le véhicule : ${v.marque} (${v.annee}).`
         );
@@ -107,6 +186,25 @@
         `;
         zoneCatalogue.appendChild(carte);
       });
+    }
+
+    [filtreMarque, filtreAnnee, filtrePrixMin, filtrePrixMax].forEach((champ) => {
+      champ.addEventListener("input", appliquerFiltresEtAfficher);
+      champ.addEventListener("change", appliquerFiltresEtAfficher);
+    });
+
+    btnReinitialiser.addEventListener("click", () => {
+      filtreMarque.value = "";
+      filtreAnnee.value = "";
+      filtrePrixMin.value = "";
+      filtrePrixMax.value = "";
+      appliquerFiltresEtAfficher();
+    });
+
+    onSnapshot(collection(db, "vehicules"), (snapshot) => {
+      tousLesVehicules = snapshot.docs.map((docSnap) => docSnap.data());
+      remplirOptionsFiltres();
+      appliquerFiltresEtAfficher();
     }, (erreur) => {
       zoneCatalogue.innerHTML = `<div class="vide">Erreur de chargement : ${erreur.message}</div>`;
     });
