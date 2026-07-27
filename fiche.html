@@ -17,7 +17,7 @@
   .bouton-carrousel {
     position: absolute; top: 50%; transform: translateY(-50%); background: rgba(15,23,42,0.55);
     color: white; border: none; width: 34px; height: 34px; border-radius: 50%;
-    font-size: 16px; display: flex; align-items: center; justify-content: center;
+    font-size: 16px; display: flex; align-items: center; justify-content: center; cursor: pointer;
   }
   .bouton-carrousel.precedent { left: 10px; }
   .bouton-carrousel.suivant { right: 10px; }
@@ -55,7 +55,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
     import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
 
-    const NUMERO_WHATSAPP = "22300000000"; // ton vrai numéro
+    const NUMERO_WHATSAPP = "22300000000";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCHwyLj90IFVp25Xz6qWFrh8612vj4QQ0s",
@@ -78,12 +78,7 @@
     function afficherCarrousel() {
       const carrousel = document.getElementById("carrouselImage");
       const indicateurs = document.getElementById("zoneIndicateurs");
-      if (!carrousel) return;
-
-      if (photoUrls.length === 0) {
-        carrousel.outerHTML = `<div class="carrousel-vide" id="carrouselImage">🚗</div>`;
-        return;
-      }
+      if (!carrousel || photoUrls.length === 0) return;
       carrousel.src = photoUrls[indexPhotoActuelle];
       if (indicateurs) {
         indicateurs.innerHTML = photoUrls.map((_, i) =>
@@ -92,14 +87,14 @@
       }
     }
 
-    window.photoSuivante = () => {
+    function photoSuivante() {
       indexPhotoActuelle = (indexPhotoActuelle + 1) % photoUrls.length;
       afficherCarrousel();
-    };
-    window.photoPrecedente = () => {
+    }
+    function photoPrecedente() {
       indexPhotoActuelle = (indexPhotoActuelle - 1 + photoUrls.length) % photoUrls.length;
       afficherCarrousel();
-    };
+    }
 
     async function chargerFiche() {
       if (!idVehicule) {
@@ -116,13 +111,14 @@
         photoUrls = v.photoUrls || (v.photoUrl ? [v.photoUrl] : []);
 
         const boutonsCarrousel = photoUrls.length > 1 ? `
-          <button class="bouton-carrousel precedent" onclick="photoPrecedente()">‹</button>
-          <button class="bouton-carrousel suivant" onclick="photoSuivante()">›</button>
+          <button class="bouton-carrousel precedent" id="btnPrecedent">‹</button>
+          <button class="bouton-carrousel suivant" id="btnSuivant">›</button>
           <div class="indicateurs" id="zoneIndicateurs"></div>
         ` : "";
 
         const message = encodeURIComponent(`Bonjour, je suis intéressé(e) par le véhicule : ${v.marque} (${v.annee}).`);
         const badge = v.paiementEchelonne ? `<div class="badge-paiement">💳 Paiement possible en 3 fois sur 6 mois</div>` : "";
+        const ligneEnergie = v.energie ? `<div class="ligne-fiche"><span class="label">Énergie</span><span class="valeur">${v.energie}</span></div>` : "";
 
         zoneFiche.innerHTML = `
           <div class="carrousel">
@@ -138,6 +134,7 @@
             <div class="fiche-technique">
               <div class="ligne-fiche"><span class="label">Année</span><span class="valeur">${v.annee}</span></div>
               <div class="ligne-fiche"><span class="label">Kilométrage</span><span class="valeur">${Number(v.km).toLocaleString("fr-FR")} km</span></div>
+              ${ligneEnergie}
               <div class="ligne-fiche"><span class="label">Photos disponibles</span><span class="valeur">${photoUrls.length}</span></div>
             </div>
             <a class="btn-whatsapp" target="_blank" href="https://wa.me/${NUMERO_WHATSAPP}?text=${message}">
@@ -146,6 +143,11 @@
           </div>
         `;
         afficherCarrousel();
+
+        const btnPrecedent = document.getElementById("btnPrecedent");
+        const btnSuivant = document.getElementById("btnSuivant");
+        if (btnPrecedent) btnPrecedent.addEventListener("click", photoPrecedente);
+        if (btnSuivant) btnSuivant.addEventListener("click", photoSuivante);
       } catch (erreur) {
         zoneFiche.innerHTML = `<div class="vide">Erreur : ${erreur.message}</div>`;
       }
