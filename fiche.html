@@ -6,7 +6,19 @@
 <title>Fiche véhicule — Parc Auto Mali</title>
 <style>
   * { box-sizing: border-box; }
-  body { font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif; background: #f1f5f9; margin: 0; padding: 24px 16px; color: #1e293b; }
+  body { font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif; background: #f1f5f9; margin: 0; color: #1e293b; }
+
+  /* ---- En-tête / navigation commune ---- */
+  .entete-site { position: sticky; top: 0; z-index: 20; background: rgba(241,245,249,0.92); backdrop-filter: blur(8px); border-bottom: 1px solid #e2e8f0; }
+  .entete-conteneur { max-width: 900px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 14px 16px; }
+  .marque-site { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; color: #0f172a; text-decoration: none; }
+  .logo-site { font-size: 18px; }
+  .nav-site { display: flex; gap: 4px; background: white; border: 1px solid #e2e8f0; padding: 4px; border-radius: 10px; }
+  .nav-lien { font-size: 13.5px; font-weight: 600; color: #64748b; text-decoration: none; padding: 7px 14px; border-radius: 8px; transition: background .15s, color .15s; }
+  .nav-lien:hover { color: #0f172a; }
+  .nav-lien.actif { background: #0f172a; color: white; }
+
+  .page { padding: 24px 16px 40px; }
   .conteneur { max-width: 640px; margin: 0 auto; }
   .lien-retour { font-size: 13.5px; color: #64748b; text-decoration: none; display: inline-block; margin-bottom: 14px; }
   .lien-retour:hover { color: #0f172a; }
@@ -28,9 +40,14 @@
   .carte-info { background: white; border: 1px solid #e2e8f0; border-radius: 14px; padding: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
   .marque { font-size: 22px; font-weight: 700; color: #0f172a; }
   .prix { font-size: 24px; font-weight: 700; color: #d97706; margin: 6px 0 14px; }
-  .badge-paiement { display: inline-block; font-size: 12px; font-weight: 700; color: #92400e; background: #fef3c7; padding: 4px 10px; border-radius: 6px; margin-bottom: 14px; }
+  .badges-fiche { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .badge-paiement { display: inline-block; font-size: 12px; font-weight: 700; color: #92400e; background: #fef3c7; padding: 4px 10px; border-radius: 6px; }
+  .badge-etat { display: inline-block; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 6px; }
+  .badge-etat.neuf { color: #166534; background: #dcfce7; }
+  .badge-etat.occasion { color: #334155; background: #e2e8f0; }
 
   .fiche-technique { border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; padding: 14px 0; margin-bottom: 16px; }
+  .titre-fiche-technique { font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: #94a3b8; margin: 0 0 6px; }
   .ligne-fiche { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; }
   .ligne-fiche .label { color: #64748b; }
   .ligne-fiche .valeur { font-weight: 600; color: #0f172a; }
@@ -46,9 +63,22 @@
 </style>
 </head>
 <body>
-  <div class="conteneur">
-    <a class="lien-retour" href="index.html">← Retour au catalogue</a>
-    <div id="zoneFiche" class="chargement">Chargement de la fiche…</div>
+  <header class="entete-site">
+    <div class="entete-conteneur">
+      <a href="index.html" class="marque-site"><span class="logo-site">🚗</span> Parc Auto Mali</a>
+      <nav class="nav-site">
+        <a href="index.html" class="nav-lien actif">Catalogue</a>
+        <a href="apropos.html" class="nav-lien">À propos</a>
+        <a href="contact.html" class="nav-lien">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page">
+    <div class="conteneur">
+      <a class="lien-retour" href="index.html">← Retour au catalogue</a>
+      <div id="zoneFiche" class="chargement">Chargement de la fiche…</div>
+    </div>
   </div>
 
   <script type="module">
@@ -117,8 +147,14 @@
         ` : "";
 
         const message = encodeURIComponent(`Bonjour, je suis intéressé(e) par le véhicule : ${v.marque} (${v.annee}).`);
-        const badge = v.paiementEchelonne ? `<div class="badge-paiement">💳 Paiement possible en 3 fois sur 6 mois</div>` : "";
+        const badgePaiement = v.paiementEchelonne ? `<div class="badge-paiement">💳 Paiement possible en 3 fois sur 6 mois</div>` : "";
+        const badgeEtat = v.etat ? `<div class="badge-etat ${v.etat === "Neuf" ? "neuf" : "occasion"}">${v.etat}</div>` : "";
+
         const ligneEnergie = v.energie ? `<div class="ligne-fiche"><span class="label">Énergie</span><span class="valeur">${v.energie}</span></div>` : "";
+        const ligneTransmission = v.transmission ? `<div class="ligne-fiche"><span class="label">Transmission</span><span class="valeur">${v.transmission}</span></div>` : "";
+        const ligneCouleur = v.couleur ? `<div class="ligne-fiche"><span class="label">Couleur</span><span class="valeur">${v.couleur}</span></div>` : "";
+        const ligneLieu = v.lieu ? `<div class="ligne-fiche"><span class="label">Localisation</span><span class="valeur">📍 ${v.lieu}</span></div>` : "";
+        const ligneEtat = v.etat ? `<div class="ligne-fiche"><span class="label">État</span><span class="valeur">${v.etat}</span></div>` : "";
 
         zoneFiche.innerHTML = `
           <div class="carrousel">
@@ -130,11 +166,16 @@
           <div class="carte-info">
             <div class="marque">${v.marque}</div>
             <div class="prix">${Number(v.prix).toLocaleString("fr-FR")} FCFA</div>
-            ${badge}
+            <div class="badges-fiche">${badgeEtat}${badgePaiement}</div>
             <div class="fiche-technique">
+              <p class="titre-fiche-technique">Fiche technique</p>
               <div class="ligne-fiche"><span class="label">Année</span><span class="valeur">${v.annee}</span></div>
               <div class="ligne-fiche"><span class="label">Kilométrage</span><span class="valeur">${Number(v.km).toLocaleString("fr-FR")} km</span></div>
               ${ligneEnergie}
+              ${ligneTransmission}
+              ${ligneCouleur}
+              ${ligneEtat}
+              ${ligneLieu}
               <div class="ligne-fiche"><span class="label">Photos disponibles</span><span class="valeur">${photoUrls.length}</span></div>
             </div>
             <a class="btn-whatsapp" target="_blank" href="https://wa.me/${NUMERO_WHATSAPP}?text=${message}">
