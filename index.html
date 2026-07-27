@@ -6,14 +6,23 @@
 <title>Parc Auto Mali — Catalogue</title>
 <style>
   * { box-sizing: border-box; }
-  body { font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif; background: #f1f5f9; margin: 0; padding: 24px 16px; color: #1e293b; }
+  body { font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif; background: #f1f5f9; margin: 0; color: #1e293b; }
+
+  /* ---- En-tête / navigation commune ---- */
+  .entete-site { position: sticky; top: 0; z-index: 20; background: rgba(241,245,249,0.92); backdrop-filter: blur(8px); border-bottom: 1px solid #e2e8f0; }
+  .entete-conteneur { max-width: 900px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 14px 16px; }
+  .marque-site { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; color: #0f172a; text-decoration: none; }
+  .logo-site { font-size: 18px; }
+  .nav-site { display: flex; gap: 4px; background: white; border: 1px solid #e2e8f0; padding: 4px; border-radius: 10px; }
+  .nav-lien { font-size: 13.5px; font-weight: 600; color: #64748b; text-decoration: none; padding: 7px 14px; border-radius: 8px; transition: background .15s, color .15s; }
+  .nav-lien:hover { color: #0f172a; }
+  .nav-lien.actif { background: #0f172a; color: white; }
+
+  .page { padding: 24px 16px 40px; }
   .conteneur { max-width: 900px; margin: 0 auto; }
-  .entete-page { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
   .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #d97706; }
   h1 { margin: 4px 0 8px; font-size: 24px; color: #0f172a; }
   .sous-titre { color: #64748b; font-size: 14px; margin-bottom: 20px; }
-  .lien-apropos { font-size: 13.5px; font-weight: 600; color: #0f172a; text-decoration: none; border: 1px solid #cbd5e1; padding: 8px 14px; border-radius: 8px; background: white; }
-  .lien-apropos:hover { background: #f8fafc; }
 
   .barre-filtres { background: white; border: 1px solid #e2e8f0; border-radius: 14px; padding: 14px; margin-bottom: 20px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
   .barre-filtres select, .barre-filtres input { width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; padding: 9px 10px; font-size: 14px; background: #fff; color: #1e293b; }
@@ -34,7 +43,11 @@
   .marque { font-weight: 700; font-size: 16px; color: #0f172a; }
   .prix { font-weight: 700; font-size: 18px; color: #d97706; margin: 6px 0; }
   .details { font-size: 13px; color: #64748b; margin-bottom: 8px; }
-  .badge-paiement { display: inline-block; font-size: 11px; font-weight: 700; color: #92400e; background: #fef3c7; padding: 2px 8px; border-radius: 5px; margin-bottom: 8px; }
+  .badges-carte { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  .badge-paiement { display: inline-block; font-size: 11px; font-weight: 700; color: #92400e; background: #fef3c7; padding: 2px 8px; border-radius: 5px; }
+  .badge-etat { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 5px; }
+  .badge-etat.neuf { color: #166534; background: #dcfce7; }
+  .badge-etat.occasion { color: #334155; background: #e2e8f0; }
   .voir-plus { font-size: 13px; font-weight: 600; color: #0f172a; }
 
   .vide { text-align: center; padding: 40px 20px; color: #94a3b8; font-size: 14px; background: white; border: 1px dashed #cbd5e1; border-radius: 12px; }
@@ -42,34 +55,52 @@
 
   @media (min-width: 640px) {
     .barre-filtres { grid-template-columns: repeat(4, 1fr); align-items: center; }
-    .champ-prix-annee { grid-column: span 2; }
-    .btn-reinitialiser { grid-column: auto; text-align: right; }
+    .champ-prix-annee { grid-column: span 4; }
+    .btn-reinitialiser { grid-column: auto; text-align: right; grid-column: span 4; }
   }
 </style>
 </head>
 <body>
-  <div class="conteneur">
-    <div class="entete-page">
-      <div>
-        <p class="eyebrow">Parc Auto Mali</p>
-        <h1>Nos véhicules disponibles</h1>
-      </div>
-      <a class="lien-apropos" href="apropos.html">À propos</a>
+  <header class="entete-site">
+    <div class="entete-conteneur">
+      <a href="index.html" class="marque-site"><span class="logo-site">🚗</span> Parc Auto Mali</a>
+      <nav class="nav-site">
+        <a href="index.html" class="nav-lien actif">Catalogue</a>
+        <a href="apropos.html" class="nav-lien">À propos</a>
+        <a href="contact.html" class="nav-lien">Contact</a>
+      </nav>
     </div>
-    <p class="sous-titre">Cliquez sur un véhicule pour voir sa fiche complète, ou contactez-nous directement sur WhatsApp.</p>
+  </header>
 
-    <div class="barre-filtres">
-      <select id="filtreMarque"><option value="">Toutes les marques</option></select>
-      <select id="filtreAnnee"><option value="">Toutes les années</option></select>
-      <div class="champ-prix-annee">
-        <input id="filtrePrixMin" type="number" placeholder="Prix min (FCFA)" />
-        <input id="filtrePrixMax" type="number" placeholder="Prix max (FCFA)" />
+  <div class="page">
+    <div class="conteneur">
+      <p class="eyebrow">Parc Auto Mali</p>
+      <h1>Nos véhicules disponibles</h1>
+      <p class="sous-titre">Cliquez sur un véhicule pour voir sa fiche complète, ou contactez-nous directement sur WhatsApp.</p>
+
+      <div class="barre-filtres">
+        <select id="filtreMarque"><option value="">Toutes les marques</option></select>
+        <select id="filtreAnnee"><option value="">Toutes les années</option></select>
+        <select id="filtreLieu">
+          <option value="">Tous les lieux</option>
+          <option value="Bamako">Bamako</option>
+          <option value="Kayes">Kayes</option>
+        </select>
+        <select id="filtreEtat">
+          <option value="">Neuf / Occasion</option>
+          <option value="Neuf">Neuf</option>
+          <option value="Occasion">Occasion</option>
+        </select>
+        <div class="champ-prix-annee">
+          <input id="filtrePrixMin" type="number" placeholder="Prix min (FCFA)" />
+          <input id="filtrePrixMax" type="number" placeholder="Prix max (FCFA)" />
+        </div>
+        <button id="btnReinitialiser" class="btn-reinitialiser">Réinitialiser les filtres</button>
       </div>
-      <button id="btnReinitialiser" class="btn-reinitialiser">Réinitialiser les filtres</button>
-    </div>
 
-    <p class="compteur-resultats" id="compteurResultats"></p>
-    <div id="zoneCatalogue" class="chargement">Chargement du catalogue…</div>
+      <p class="compteur-resultats" id="compteurResultats"></p>
+      <div id="zoneCatalogue" class="chargement">Chargement du catalogue…</div>
+    </div>
   </div>
 
   <script type="module">
@@ -92,6 +123,8 @@
     const compteurResultats = document.getElementById("compteurResultats");
     const filtreMarque = document.getElementById("filtreMarque");
     const filtreAnnee = document.getElementById("filtreAnnee");
+    const filtreLieu = document.getElementById("filtreLieu");
+    const filtreEtat = document.getElementById("filtreEtat");
     const filtrePrixMin = document.getElementById("filtrePrixMin");
     const filtrePrixMax = document.getElementById("filtrePrixMax");
     const btnReinitialiser = document.getElementById("btnReinitialiser");
@@ -117,12 +150,16 @@
     function appliquerFiltresEtAfficher() {
       const marque = filtreMarque.value;
       const annee = filtreAnnee.value;
+      const lieu = filtreLieu.value;
+      const etat = filtreEtat.value;
       const prixMin = filtrePrixMin.value ? Number(filtrePrixMin.value) : null;
       const prixMax = filtrePrixMax.value ? Number(filtrePrixMax.value) : null;
 
       const resultats = tousLesVehicules.filter((v) => {
         if (marque && extraireMarque(v.marque) !== marque) return false;
         if (annee && String(v.annee) !== annee) return false;
+        if (lieu && v.lieu !== lieu) return false;
+        if (etat && v.etat !== etat) return false;
         if (prixMin !== null && v.prix < prixMin) return false;
         if (prixMax !== null && v.prix > prixMax) return false;
         return true;
@@ -144,8 +181,10 @@
         const photo = photoUrls[0]
           ? `<img class="photo-vehicule" src="${photoUrls[0]}" alt="${v.marque}" />`
           : `<div class="photo-vide">🚗</div>`;
-        const badge = v.paiementEchelonne ? `<div class="badge-paiement">Paiement en 3x possible</div>` : "";
+        const badgePaiement = v.paiementEchelonne ? `<div class="badge-paiement">Paiement en 3x possible</div>` : "";
+        const badgeEtat = v.etat ? `<div class="badge-etat ${v.etat === "Neuf" ? "neuf" : "occasion"}">${v.etat}</div>` : "";
         const energieTexte = v.energie ? ` · ${v.energie}` : "";
+        const lieuTexte = v.lieu ? ` · 📍 ${v.lieu}` : "";
 
         const lien = document.createElement("a");
         lien.className = "carte-vehicule";
@@ -155,8 +194,8 @@
           <div class="contenu-carte">
             <div class="marque">${v.marque}</div>
             <div class="prix">${Number(v.prix).toLocaleString("fr-FR")} FCFA</div>
-            <div class="details">${v.annee} · ${Number(v.km).toLocaleString("fr-FR")} km${energieTexte}</div>
-            ${badge}
+            <div class="details">${v.annee} · ${Number(v.km).toLocaleString("fr-FR")} km${energieTexte}${lieuTexte}</div>
+            <div class="badges-carte">${badgeEtat}${badgePaiement}</div>
             <div class="voir-plus">Voir la fiche complète →</div>
           </div>
         `;
@@ -164,13 +203,14 @@
       });
     }
 
-    [filtreMarque, filtreAnnee, filtrePrixMin, filtrePrixMax].forEach((champ) => {
+    [filtreMarque, filtreAnnee, filtreLieu, filtreEtat, filtrePrixMin, filtrePrixMax].forEach((champ) => {
       champ.addEventListener("input", appliquerFiltresEtAfficher);
       champ.addEventListener("change", appliquerFiltresEtAfficher);
     });
 
     btnReinitialiser.addEventListener("click", () => {
-      filtreMarque.value = ""; filtreAnnee.value = ""; filtrePrixMin.value = ""; filtrePrixMax.value = "";
+      filtreMarque.value = ""; filtreAnnee.value = ""; filtreLieu.value = ""; filtreEtat.value = "";
+      filtrePrixMin.value = ""; filtrePrixMax.value = "";
       appliquerFiltresEtAfficher();
     });
 
