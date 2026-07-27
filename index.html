@@ -96,7 +96,7 @@
     const filtrePrixMax = document.getElementById("filtrePrixMax");
     const btnReinitialiser = document.getElementById("btnReinitialiser");
 
-    let tousLesVehicules = []; // { id, ...data }
+    let tousLesVehicules = [];
 
     function extraireMarque(texte) {
       return texte.split(/[\/\s]/)[0].trim();
@@ -145,6 +145,7 @@
           ? `<img class="photo-vehicule" src="${photoUrls[0]}" alt="${v.marque}" />`
           : `<div class="photo-vide">🚗</div>`;
         const badge = v.paiementEchelonne ? `<div class="badge-paiement">Paiement en 3x possible</div>` : "";
+        const energieTexte = v.energie ? ` · ${v.energie}` : "";
 
         const lien = document.createElement("a");
         lien.className = "carte-vehicule";
@@ -154,7 +155,7 @@
           <div class="contenu-carte">
             <div class="marque">${v.marque}</div>
             <div class="prix">${Number(v.prix).toLocaleString("fr-FR")} FCFA</div>
-            <div class="details">${v.annee} · ${Number(v.km).toLocaleString("fr-FR")} km</div>
+            <div class="details">${v.annee} · ${Number(v.km).toLocaleString("fr-FR")} km${energieTexte}</div>
             ${badge}
             <div class="voir-plus">Voir la fiche complète →</div>
           </div>
