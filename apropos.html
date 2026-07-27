@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>À propos — Parc Auto Mali</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif; background: #f1f5f9; margin: 0; padding: 24px 16px; color: #1e293b; }
+  .conteneur { max-width: 640px; margin: 0 auto; }
+  .lien-retour { font-size: 13.5px; color: #64748b; text-decoration: none; display: inline-block; margin-bottom: 14px; }
+  .lien-retour:hover { color: #0f172a; }
+  .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #d97706; }
+  h1 { margin: 4px 0 16px; font-size: 24px; color: #0f172a; }
+
+  .carte { background: white; border: 1px solid #e2e8f0; border-radius: 14px; padding: 20px; margin-bottom: 18px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+  .carte h2 { font-size: 15px; margin: 0 0 10px; color: #0f172a; }
+  .carte p { font-size: 14.5px; line-height: 1.6; color: #334155; margin: 0; }
+
+  .fiche-direction { display: flex; align-items: center; gap: 14px; }
+  .avatar-pdg {
+    width: 56px; height: 56px; border-radius: 50%; background: #0f172a; color: white;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; flex-shrink: 0;
+  }
+  .nom-pdg { font-weight: 700; font-size: 16px; color: #0f172a; }
+  .role-pdg { font-size: 13px; color: #64748b; }
+
+  .liste-valeurs { margin: 10px 0 0; padding-left: 18px; font-size: 14px; color: #334155; line-height: 1.7; }
+
+  .grille-lieux { display: grid; grid-template-columns: 1fr; gap: 14px; }
+  @media (min-width: 560px) { .grille-lieux { grid-template-columns: 1fr 1fr; } }
+  .carte-lieu h3 { font-size: 14.5px; margin: 0 0 8px; color: #0f172a; }
+  .carte-lieu iframe { width: 100%; height: 180px; border: 0; border-radius: 10px; }
+</style>
+</head>
+<body>
+  <div class="conteneur">
+    <a class="lien-retour" href="index.html">← Retour au catalogue</a>
+    <p class="eyebrow">Parc Auto Mali</p>
+    <h1>À propos de nous</h1>
+
+    <div class="carte">
+      <h2>Notre direction</h2>
+      <div class="fiche-direction">
+        <div class="avatar-pdg">SS</div>
+        <div>
+          <div class="nom-pdg">Sylla Sylla</div>
+          <div class="role-pdg">Président-directeur général</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="carte">
+      <h2>Notre histoire</h2>
+      <p>
+        La Société Sylla accompagne ses clients dans l'achat de véhicules
+        fiables et contrôlés depuis 2000. Basée entre Kayes et Bamako, notre
+        équipe met à votre disposition un large choix de véhicules, avec un
+        service de proximité et une relation de confiance construite sur plus
+        de deux décennies.
+      </p>
+      <ul class="liste-valeurs">
+        <li>Plus de 20 ans d'expérience dans la vente automobile</li>
+        <li>Véhicules vérifiés avant mise en vente</li>
+        <li>Accompagnement personnalisé, y compris sur les modalités de paiement</li>
+      </ul>
+    </div>
+
+    <div class="carte">
+      <h2>Nos localisations</h2>
+      <div class="grille-lieux">
+        <div class="carte-lieu">
+          <h3>📍 Kayes</h3>
+          <iframe src="https://www.google.com/maps?q=Kayes,+Mali&output=embed" loading="lazy"></iframe>
+        </div>
+        <div class="carte-lieu">
+          <h3>📍 Bamako</h3>
+          <iframe src="https://www.google.com/maps?q=Bamako,+Mali&output=embed" loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
