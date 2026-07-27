@@ -15,8 +15,8 @@
   .carte { background: white; border: 1px solid #e2e8f0; border-radius: 14px; padding: 18px; margin-bottom: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
   .carte h2 { font-size: 14px; margin: 0 0 14px; color: #0f172a; display: flex; align-items: center; gap: 6px; }
   .grille-champs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-  input { width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; padding: 9px 10px; font-size: 14px; background: #fff; }
-  input:focus { outline: 2px solid #d97706; border-color: transparent; }
+  input, select { width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; padding: 9px 10px; font-size: 14px; background: #fff; color: #1e293b; }
+  input:focus, select:focus { outline: 2px solid #d97706; border-color: transparent; }
   input[type="file"] { padding: 7px; grid-column: span 2; }
 
   .galerie-apercu { grid-column: span 2; display: flex; gap: 8px; flex-wrap: wrap; }
@@ -57,7 +57,7 @@
   .details { font-size: 12.5px; color: #64748b; margin-top: 2px; }
   .badge-paiement { display: inline-block; font-size: 10.5px; font-weight: 700; color: #92400e; background: #fef3c7; padding: 1px 6px; border-radius: 4px; margin-top: 3px; }
   .icones { display: flex; gap: 4px; flex-shrink: 0; }
-  .icone-btn { background: transparent; border-radius: 8px; padding: 7px; color: #64748b; font-size: 15px; line-height: 1; }
+  .icone-btn { background: transparent; border-radius: 8px; padding: 7px; color: #64748b; font-size: 15px; line-height: 1; border: none; cursor: pointer; }
   .icone-btn:hover { background: #f1f5f9; }
   .icone-btn.supprimer:hover { background: #fef2f2; color: #dc2626; }
 
@@ -103,7 +103,14 @@
           <input id="champMarque" placeholder="Marque / modèle" style="grid-column: span 2;" />
           <input id="champPrix" type="number" placeholder="Prix (FCFA)" />
           <input id="champAnnee" type="number" placeholder="Année" />
-          <input id="champKm" type="number" placeholder="Kilométrage" style="grid-column: span 2;" />
+          <input id="champKm" type="number" placeholder="Kilométrage" />
+          <select id="champEnergie">
+            <option value="">Énergie…</option>
+            <option value="Essence">Essence</option>
+            <option value="Diesel">Diesel</option>
+            <option value="Hybride">Hybride</option>
+            <option value="Électrique">Électrique</option>
+          </select>
 
           <input id="champPhotos" type="file" accept="image/*" multiple />
           <div class="info-galerie">5 photos maximum. Les nouvelles photos s'ajoutent aux existantes (dans la limite de 5).</div>
@@ -166,6 +173,7 @@
     const champPrix = document.getElementById("champPrix");
     const champAnnee = document.getElementById("champAnnee");
     const champKm = document.getElementById("champKm");
+    const champEnergie = document.getElementById("champEnergie");
     const champPhotos = document.getElementById("champPhotos");
     const galerieApercu = document.getElementById("galerieApercu");
     const champPaiement = document.getElementById("champPaiement");
@@ -176,22 +184,34 @@
     const titreFormulaire = document.getElementById("titreFormulaire");
 
     let idEnCoursDeModification = null;
-    let photosExistantes = []; // URLs déjà enregistrées (mode modification)
+    let photosExistantes = [];
     let arreterEcoute = null;
+
+    // ============================================================
+    // IMPORTANT : on garde une "carte" (Map) id -> données du véhicule.
+    // Les boutons Modifier/Supprimer ne passent que l'id en paramètre ;
+    // toutes les données réelles sont relues depuis cette Map. C'est ce
+    // qui évite le bug précédent (guillemets qui cassaient le HTML dès
+    // qu'un véhicule avait plusieurs photos).
+    // ============================================================
+    const vehiculesParId = new Map();
 
     function afficherApercuPhotosExistantes() {
       galerieApercu.innerHTML = photosExistantes.map((url, index) => `
         <div class="miniature-apercu">
           <img src="${url}" alt="Photo ${index + 1}" />
-          <button type="button" onclick="window.retirerPhotoExistante(${index})" title="Retirer">✕</button>
+          <button type="button" data-index="${index}" class="btnRetirerPhoto" title="Retirer">✕</button>
         </div>
       `).join("");
-    }
 
-    window.retirerPhotoExistante = (index) => {
-      photosExistantes.splice(index, 1);
-      afficherApercuPhotosExistantes();
-    };
+      galerieApercu.querySelectorAll(".btnRetirerPhoto").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const index = Number(btn.dataset.index);
+          photosExistantes.splice(index, 1);
+          afficherApercuPhotosExistantes();
+        });
+      });
+    }
 
     btnConnexion.addEventListener("click", async () => {
       erreurConnexion.textContent = "";
@@ -224,6 +244,7 @@
       champPrix.value = "";
       champAnnee.value = "";
       champKm.value = "";
+      champEnergie.value = "";
       champPhotos.value = "";
       champPaiement.checked = false;
       photosExistantes = [];
@@ -240,6 +261,7 @@
       const prix = Number(champPrix.value);
       const annee = Number(champAnnee.value);
       const km = Number(champKm.value);
+      const energie = champEnergie.value;
       const nouveauxFichiers = Array.from(champPhotos.files || []);
 
       if (!marque || !prix || !annee || !km) {
@@ -268,7 +290,7 @@
 
         btnValider.textContent = "Enregistrement…";
         const donnees = {
-          marque, prix, annee, km,
+          marque, prix, annee, km, energie,
           photoUrls,
           paiementEchelonne: champPaiement.checked,
         };
@@ -288,7 +310,7 @@
 
     btnAnnuler.addEventListener("click", viderFormulaire);
 
-    window.supprimerVehicule = async (id) => {
+    async function supprimerVehicule(id) {
       if (!confirm("Supprimer ce véhicule ?")) return;
       try {
         await deleteDoc(doc(db, "vehicules", id));
@@ -296,25 +318,30 @@
       } catch (erreur) {
         alert("Erreur : " + erreur.message);
       }
-    };
+    }
 
-    window.modifierVehicule = (id, marque, prix, annee, km, photoUrlsJson, paiementEchelonne) => {
+    function modifierVehicule(id) {
+      const v = vehiculesParId.get(id);
+      if (!v) return;
       idEnCoursDeModification = id;
-      champMarque.value = marque;
-      champPrix.value = prix;
-      champAnnee.value = annee;
-      champKm.value = km;
-      champPaiement.checked = !!paiementEchelonne;
-      photosExistantes = JSON.parse(photoUrlsJson || "[]");
+      champMarque.value = v.marque || "";
+      champPrix.value = v.prix || "";
+      champAnnee.value = v.annee || "";
+      champKm.value = v.km || "";
+      champEnergie.value = v.energie || "";
+      champPaiement.checked = !!v.paiementEchelonne;
+      photosExistantes = v.photoUrls ? [...v.photoUrls] : (v.photoUrl ? [v.photoUrl] : []);
       afficherApercuPhotosExistantes();
       titreFormulaire.textContent = "✏️ Modifier le véhicule";
       btnValider.textContent = "Enregistrer les modifications";
       btnAnnuler.style.display = "inline-block";
       window.scrollTo({ top: 0, behavior: "smooth" });
-    };
+    }
 
     function demarrerEcouteVehicules() {
       arreterEcoute = onSnapshot(refCollection, (snapshot) => {
+        vehiculesParId.clear();
+
         if (snapshot.empty) {
           zoneListe.innerHTML = `<div class="vide">Aucun véhicule pour le moment — ajoute-en un ci-dessus.</div>`;
           return;
@@ -323,13 +350,14 @@
         snapshot.forEach((docSnap) => {
           const v = docSnap.data();
           const id = docSnap.id;
+          vehiculesParId.set(id, v);
+
           const photoUrls = v.photoUrls || (v.photoUrl ? [v.photoUrl] : []);
           const miniature = photoUrls[0]
             ? `<img class="miniature" src="${photoUrls[0]}" alt="${v.marque}" />`
             : `<div class="miniature-vide">🚗</div>`;
-          const badge = v.paiementEchelonne
-            ? `<div class="badge-paiement">Paiement en 3x possible</div>` : "";
-          const photoUrlsAttr = JSON.stringify(photoUrls).replace(/"/g, "&quot;");
+          const badge = v.paiementEchelonne ? `<div class="badge-paiement">Paiement en 3x possible</div>` : "";
+          const energieTexte = v.energie ? ` · ${v.energie}` : "";
 
           const ligne = document.createElement("div");
           ligne.className = "ligne-vehicule";
@@ -341,18 +369,18 @@
                 <div class="details">
                   ${v.annee} · ${Number(v.km).toLocaleString("fr-FR")} km ·
                   ${Number(v.prix).toLocaleString("fr-FR")} FCFA
-                  · ${photoUrls.length} photo${photoUrls.length > 1 ? "s" : ""}
+                  · ${photoUrls.length} photo${photoUrls.length > 1 ? "s" : ""}${energieTexte}
                 </div>
                 ${badge}
               </div>
             </div>
             <div class="icones">
-              <button class="icone-btn" title="Modifier"
-                onclick='modifierVehicule("${id}", "${v.marque.replace(/"/g, "&quot;")}", ${v.prix}, ${v.annee}, ${v.km}, "${photoUrlsAttr}", ${!!v.paiementEchelonne})'>✏️</button>
-              <button class="icone-btn supprimer" title="Supprimer"
-                onclick="supprimerVehicule('${id}')">🗑️</button>
+              <button class="icone-btn btn-modifier" title="Modifier">✏️</button>
+              <button class="icone-btn supprimer btn-supprimer" title="Supprimer">🗑️</button>
             </div>
           `;
+          ligne.querySelector(".btn-modifier").addEventListener("click", () => modifierVehicule(id));
+          ligne.querySelector(".btn-supprimer").addEventListener("click", () => supprimerVehicule(id));
           zoneListe.appendChild(ligne);
         });
       }, (erreur) => {
