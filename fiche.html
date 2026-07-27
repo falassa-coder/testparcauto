@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Fiche véhicule — Parc Auto Mali</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif; background: #f1f5f9; margin: 0; padding: 24px 16px; color: #1e293b; }
+  .conteneur { max-width: 640px; margin: 0 auto; }
+  .lien-retour { font-size: 13.5px; color: #64748b; text-decoration: none; display: inline-block; margin-bottom: 14px; }
+  .lien-retour:hover { color: #0f172a; }
+
+  .carrousel { position: relative; border-radius: 16px; overflow: hidden; background: #e2e8f0; margin-bottom: 18px; }
+  .carrousel img { width: 100%; height: 280px; object-fit: cover; display: block; }
+  .carrousel-vide { width: 100%; height: 280px; display: flex; align-items: center; justify-content: center; font-size: 50px; }
+  .bouton-carrousel {
+    position: absolute; top: 50%; transform: translateY(-50%); background: rgba(15,23,42,0.55);
+    color: white; border: none; width: 34px; height: 34px; border-radius: 50%;
+    font-size: 16px; display: flex; align-items: center; justify-content: center;
+  }
+  .bouton-carrousel.precedent { left: 10px; }
+  .bouton-carrousel.suivant { right: 10px; }
+  .indicateurs { position: absolute; bottom: 10px; left: 0; right: 0; display: flex; justify-content: center; gap: 6px; }
+  .indicateurs span { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.5); }
+  .indicateurs span.actif { background: white; }
+
+  .carte-info { background: white; border: 1px solid #e2e8f0; border-radius: 14px; padding: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+  .marque { font-size: 22px; font-weight: 700; color: #0f172a; }
+  .prix { font-size: 24px; font-weight: 700; color: #d97706; margin: 6px 0 14px; }
+  .badge-paiement { display: inline-block; font-size: 12px; font-weight: 700; color: #92400e; background: #fef3c7; padding: 4px 10px; border-radius: 6px; margin-bottom: 14px; }
+
+  .fiche-technique { border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; padding: 14px 0; margin-bottom: 16px; }
+  .ligne-fiche { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; }
+  .ligne-fiche .label { color: #64748b; }
+  .ligne-fiche .valeur { font-weight: 600; color: #0f172a; }
+
+  .btn-whatsapp {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    background: #16a34a; color: white; text-decoration: none;
+    border-radius: 10px; padding: 12px 16px; font-size: 15px; font-weight: 600;
+  }
+  .btn-whatsapp:hover { opacity: 0.9; }
+
+  .chargement, .vide { text-align: center; padding: 40px 20px; color: #94a3b8; font-size: 14px; }
+</style>
+</head>
+<body>
+  <div class="conteneur">
+    <a class="lien-retour" href="index.html">← Retour au catalogue</a>
+    <div id="zoneFiche" class="chargement">Chargement de la fiche…</div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
+
+    const NUMERO_WHATSAPP = "22300000000"; // ton vrai numéro
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCHwyLj90IFVp25Xz6qWFrh8612vj4QQ0s",
+      authDomain: "parc-auto-19b48.firebaseapp.com",
+      projectId: "parc-auto-19b48",
+      storageBucket: "parc-auto-19b48.firebasestorage.app",
+      messagingSenderId: "1015165261940",
+      appId: "1:1015165261940:web:37d0c01d46609e13871921",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const zoneFiche = document.getElementById("zoneFiche");
+
+    const idVehicule = new URLSearchParams(window.location.search).get("id");
+
+    let indexPhotoActuelle = 0;
+    let photoUrls = [];
+
+    function afficherCarrousel() {
+      const carrousel = document.getElementById("carrouselImage");
+      const indicateurs = document.getElementById("zoneIndicateurs");
+      if (!carrousel) return;
+
+      if (photoUrls.length === 0) {
+        carrousel.outerHTML = `<div class="carrousel-vide" id="carrouselImage">🚗</div>`;
+        return;
+      }
+      carrousel.src = photoUrls[indexPhotoActuelle];
+      if (indicateurs) {
+        indicateurs.innerHTML = photoUrls.map((_, i) =>
+          `<span class="${i === indexPhotoActuelle ? "actif" : ""}"></span>`
+        ).join("");
+      }
+    }
+
+    window.photoSuivante = () => {
+      indexPhotoActuelle = (indexPhotoActuelle + 1) % photoUrls.length;
+      afficherCarrousel();
+    };
+    window.photoPrecedente = () => {
+      indexPhotoActuelle = (indexPhotoActuelle - 1 + photoUrls.length) % photoUrls.length;
+      afficherCarrousel();
+    };
+
+    async function chargerFiche() {
+      if (!idVehicule) {
+        zoneFiche.innerHTML = `<div class="vide">Véhicule introuvable.</div>`;
+        return;
+      }
+      try {
+        const snap = await getDoc(doc(db, "vehicules", idVehicule));
+        if (!snap.exists()) {
+          zoneFiche.innerHTML = `<div class="vide">Ce véhicule n'est plus disponible.</div>`;
+          return;
+        }
+        const v = snap.data();
+        photoUrls = v.photoUrls || (v.photoUrl ? [v.photoUrl] : []);
+
+        const boutonsCarrousel = photoUrls.length > 1 ? `
+          <button class="bouton-carrousel precedent" onclick="photoPrecedente()">‹</button>
+          <button class="bouton-carrousel suivant" onclick="photoSuivante()">›</button>
+          <div class="indicateurs" id="zoneIndicateurs"></div>
+        ` : "";
+
+        const message = encodeURIComponent(`Bonjour, je suis intéressé(e) par le véhicule : ${v.marque} (${v.annee}).`);
+        const badge = v.paiementEchelonne ? `<div class="badge-paiement">💳 Paiement possible en 3 fois sur 6 mois</div>` : "";
+
+        zoneFiche.innerHTML = `
+          <div class="carrousel">
+            ${photoUrls[0]
+              ? `<img id="carrouselImage" src="${photoUrls[0]}" alt="${v.marque}" />`
+              : `<div class="carrousel-vide" id="carrouselImage">🚗</div>`}
+            ${boutonsCarrousel}
+          </div>
+          <div class="carte-info">
+            <div class="marque">${v.marque}</div>
+            <div class="prix">${Number(v.prix).toLocaleString("fr-FR")} FCFA</div>
+            ${badge}
+            <div class="fiche-technique">
+              <div class="ligne-fiche"><span class="label">Année</span><span class="valeur">${v.annee}</span></div>
+              <div class="ligne-fiche"><span class="label">Kilométrage</span><span class="valeur">${Number(v.km).toLocaleString("fr-FR")} km</span></div>
+              <div class="ligne-fiche"><span class="label">Photos disponibles</span><span class="valeur">${photoUrls.length}</span></div>
+            </div>
+            <a class="btn-whatsapp" target="_blank" href="https://wa.me/${NUMERO_WHATSAPP}?text=${message}">
+              💬 Contacter sur WhatsApp
+            </a>
+          </div>
+        `;
+        afficherCarrousel();
+      } catch (erreur) {
+        zoneFiche.innerHTML = `<div class="vide">Erreur : ${erreur.message}</div>`;
+      }
+    }
+
+    chargerFiche();
+  </script>
+</body>
+</html>
