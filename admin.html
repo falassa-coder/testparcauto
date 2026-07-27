@@ -13,11 +13,14 @@
   .sous-titre { color: #64748b; font-size: 14px; margin-bottom: 20px; }
 
   .carte { background: white; border: 1px solid #e2e8f0; border-radius: 14px; padding: 18px; margin-bottom: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
-  .carte h2 { font-size: 14px; margin: 0 0 14px; color: #0f172a; display: flex; align-items: center; gap: 6px; }
+  .carte h2 { font-size: 14px; margin: 0 0 4px; color: #0f172a; display: flex; align-items: center; gap: 6px; }
+  .sous-titre-carte { font-size: 12px; color: #94a3b8; margin: 0 0 14px; }
   .grille-champs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
   input, select { width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; padding: 9px 10px; font-size: 14px; background: #fff; color: #1e293b; }
   input:focus, select:focus { outline: 2px solid #d97706; border-color: transparent; }
   input[type="file"] { padding: 7px; grid-column: span 2; }
+  .champ-pleine-largeur { grid-column: span 2; }
+  label.etiquette-champ { grid-column: span 2; font-size: 11.5px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; color: #94a3b8; margin: 4px 0 -2px; }
 
   .galerie-apercu { grid-column: span 2; display: flex; gap: 8px; flex-wrap: wrap; }
   .miniature-apercu { position: relative; width: 60px; height: 60px; }
@@ -55,7 +58,11 @@
   .info-vehicule { min-width: 0; }
   .marque { font-weight: 600; font-size: 14.5px; }
   .details { font-size: 12.5px; color: #64748b; margin-top: 2px; }
-  .badge-paiement { display: inline-block; font-size: 10.5px; font-weight: 700; color: #92400e; background: #fef3c7; padding: 1px 6px; border-radius: 4px; margin-top: 3px; }
+  .badges-ligne { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
+  .badge-paiement { display: inline-block; font-size: 10.5px; font-weight: 700; color: #92400e; background: #fef3c7; padding: 1px 6px; border-radius: 4px; }
+  .badge-etat { display: inline-block; font-size: 10.5px; font-weight: 700; padding: 1px 6px; border-radius: 4px; }
+  .badge-etat.neuf { color: #166534; background: #dcfce7; }
+  .badge-etat.occasion { color: #334155; background: #e2e8f0; }
   .icones { display: flex; gap: 4px; flex-shrink: 0; }
   .icone-btn { background: transparent; border-radius: 8px; padding: 7px; color: #64748b; font-size: 15px; line-height: 1; border: none; cursor: pointer; }
   .icone-btn:hover { background: #f1f5f9; }
@@ -99,20 +106,17 @@
 
       <div class="carte">
         <h2 id="titreFormulaire">➕ Ajouter un véhicule</h2>
+        <p class="sous-titre-carte">Informations générales</p>
         <div class="grille-champs">
           <input id="champMarque" placeholder="Marque / modèle" style="grid-column: span 2;" />
           <input id="champPrix" type="number" placeholder="Prix (FCFA)" />
-          <input id="champAnnee" type="number" placeholder="Année" />
-          <input id="champKm" type="number" placeholder="Kilométrage" />
-          <select id="champEnergie">
-            <option value="">Énergie…</option>
-            <option value="Essence">Essence</option>
-            <option value="Diesel">Diesel</option>
-            <option value="Hybride">Hybride</option>
-            <option value="Électrique">Électrique</option>
+          <select id="champEtat">
+            <option value="">État…</option>
+            <option value="Neuf">Neuf</option>
+            <option value="Occasion">Occasion</option>
           </select>
 
-          <input id="champPhotos" type="file" accept="image/*" multiple />
+          <input id="champPhotos" type="file" accept="image/*" multiple class="champ-pleine-largeur" />
           <div class="info-galerie">5 photos maximum. Les nouvelles photos s'ajoutent aux existantes (dans la limite de 5).</div>
           <div id="galerieApercu" class="galerie-apercu"></div>
 
@@ -121,6 +125,31 @@
             Paiement échelonné disponible pour ce véhicule (3 fois sur 6 mois)
           </label>
         </div>
+
+        <label class="etiquette-champ" style="margin-top: 18px; display:block;">🔧 Fiche technique</label>
+        <div class="grille-champs" style="margin-top: 8px;">
+          <input id="champAnnee" type="number" placeholder="Année" />
+          <input id="champKm" type="number" placeholder="Kilométrage" />
+          <select id="champEnergie">
+            <option value="">Carburant / Énergie…</option>
+            <option value="Essence">Essence</option>
+            <option value="Diesel">Diesel</option>
+            <option value="Hybride">Hybride</option>
+            <option value="Électrique">Électrique</option>
+          </select>
+          <select id="champTransmission">
+            <option value="">Transmission…</option>
+            <option value="Manuelle">Manuelle</option>
+            <option value="Automatique">Automatique</option>
+          </select>
+          <input id="champCouleur" placeholder="Couleur" />
+          <select id="champLieu">
+            <option value="">Lieu…</option>
+            <option value="Bamako">Bamako</option>
+            <option value="Kayes">Kayes</option>
+          </select>
+        </div>
+
         <div id="zoneErreur" class="erreur"></div>
         <div class="actions">
           <button id="btnValider" class="btn-principal">Ajouter au catalogue</button>
@@ -171,9 +200,13 @@
 
     const champMarque = document.getElementById("champMarque");
     const champPrix = document.getElementById("champPrix");
+    const champEtat = document.getElementById("champEtat");
     const champAnnee = document.getElementById("champAnnee");
     const champKm = document.getElementById("champKm");
     const champEnergie = document.getElementById("champEnergie");
+    const champTransmission = document.getElementById("champTransmission");
+    const champCouleur = document.getElementById("champCouleur");
+    const champLieu = document.getElementById("champLieu");
     const champPhotos = document.getElementById("champPhotos");
     const galerieApercu = document.getElementById("galerieApercu");
     const champPaiement = document.getElementById("champPaiement");
@@ -242,9 +275,13 @@
     function viderFormulaire() {
       champMarque.value = "";
       champPrix.value = "";
+      champEtat.value = "";
       champAnnee.value = "";
       champKm.value = "";
       champEnergie.value = "";
+      champTransmission.value = "";
+      champCouleur.value = "";
+      champLieu.value = "";
       champPhotos.value = "";
       champPaiement.checked = false;
       photosExistantes = [];
@@ -259,13 +296,21 @@
     btnValider.addEventListener("click", async () => {
       const marque = champMarque.value.trim();
       const prix = Number(champPrix.value);
+      const etat = champEtat.value;
       const annee = Number(champAnnee.value);
       const km = Number(champKm.value);
       const energie = champEnergie.value;
+      const transmission = champTransmission.value;
+      const couleur = champCouleur.value.trim();
+      const lieu = champLieu.value;
       const nouveauxFichiers = Array.from(champPhotos.files || []);
 
       if (!marque || !prix || !annee || !km) {
-        zoneErreur.textContent = "Merci de remplir tous les champs.";
+        zoneErreur.textContent = "Merci de remplir tous les champs obligatoires (marque, prix, année, kilométrage).";
+        return;
+      }
+      if (!etat || !lieu) {
+        zoneErreur.textContent = "Merci de renseigner l'état (Neuf/Occasion) et le lieu du véhicule.";
         return;
       }
       if (photosExistantes.length + nouveauxFichiers.length > MAX_PHOTOS) {
@@ -290,7 +335,7 @@
 
         btnValider.textContent = "Enregistrement…";
         const donnees = {
-          marque, prix, annee, km, energie,
+          marque, prix, etat, annee, km, energie, transmission, couleur, lieu,
           photoUrls,
           paiementEchelonne: champPaiement.checked,
         };
@@ -326,9 +371,13 @@
       idEnCoursDeModification = id;
       champMarque.value = v.marque || "";
       champPrix.value = v.prix || "";
+      champEtat.value = v.etat || "";
       champAnnee.value = v.annee || "";
       champKm.value = v.km || "";
       champEnergie.value = v.energie || "";
+      champTransmission.value = v.transmission || "";
+      champCouleur.value = v.couleur || "";
+      champLieu.value = v.lieu || "";
       champPaiement.checked = !!v.paiementEchelonne;
       photosExistantes = v.photoUrls ? [...v.photoUrls] : (v.photoUrl ? [v.photoUrl] : []);
       afficherApercuPhotosExistantes();
@@ -356,8 +405,10 @@
           const miniature = photoUrls[0]
             ? `<img class="miniature" src="${photoUrls[0]}" alt="${v.marque}" />`
             : `<div class="miniature-vide">🚗</div>`;
-          const badge = v.paiementEchelonne ? `<div class="badge-paiement">Paiement en 3x possible</div>` : "";
+          const badgePaiement = v.paiementEchelonne ? `<span class="badge-paiement">Paiement en 3x</span>` : "";
+          const badgeEtat = v.etat ? `<span class="badge-etat ${v.etat === "Neuf" ? "neuf" : "occasion"}">${v.etat}</span>` : "";
           const energieTexte = v.energie ? ` · ${v.energie}` : "";
+          const lieuTexte = v.lieu ? ` · 📍 ${v.lieu}` : "";
 
           const ligne = document.createElement("div");
           ligne.className = "ligne-vehicule";
@@ -369,9 +420,9 @@
                 <div class="details">
                   ${v.annee} · ${Number(v.km).toLocaleString("fr-FR")} km ·
                   ${Number(v.prix).toLocaleString("fr-FR")} FCFA
-                  · ${photoUrls.length} photo${photoUrls.length > 1 ? "s" : ""}${energieTexte}
+                  · ${photoUrls.length} photo${photoUrls.length > 1 ? "s" : ""}${energieTexte}${lieuTexte}
                 </div>
-                ${badge}
+                <div class="badges-ligne">${badgeEtat}${badgePaiement}</div>
               </div>
             </div>
             <div class="icones">
