@@ -157,7 +157,7 @@
         </div>
       </div>
 
-      <p class="liste-titre">Véhicules enregistrés</p>
+      <p class="liste-titre" id="titreListe">Véhicules enregistrés</p>
       <div id="zoneListe" class="chargement">Chargement des véhicules…</div>
 
       <p class="note-bas">
@@ -189,6 +189,13 @@
     const refCollection = collection(db, "vehicules");
     const MAX_PHOTOS = 5;
 
+    // ------------------------------------------------------------
+    // LIMITE DE VÉHICULES — dépend de la formule vendue au client.
+    // Standard : 20 véhicules max. Premium : illimité (Infinity).
+    // Un seul chiffre à changer ici selon le contrat signé.
+    // ------------------------------------------------------------
+    const LIMITE_VEHICULES = 20;
+
     const ecranConnexion = document.getElementById("ecranConnexion");
     const contenuAdmin = document.getElementById("contenuAdmin");
     const champEmail = document.getElementById("champEmail");
@@ -212,6 +219,7 @@
     const champPaiement = document.getElementById("champPaiement");
     const zoneErreur = document.getElementById("zoneErreur");
     const zoneListe = document.getElementById("zoneListe");
+    const titreListe = document.getElementById("titreListe");
     const btnValider = document.getElementById("btnValider");
     const btnAnnuler = document.getElementById("btnAnnuler");
     const titreFormulaire = document.getElementById("titreFormulaire");
@@ -313,6 +321,10 @@
         zoneErreur.textContent = "Merci de renseigner l'état (Neuf/Occasion) et le lieu du véhicule.";
         return;
       }
+      if (!idEnCoursDeModification && vehiculesParId.size >= LIMITE_VEHICULES) {
+        zoneErreur.textContent = `Limite de ${LIMITE_VEHICULES} véhicules atteinte pour votre formule. Passez en Premium pour un catalogue illimité, ou retirez un véhicule avant d'en ajouter un nouveau.`;
+        return;
+      }
       if (photosExistantes.length + nouveauxFichiers.length > MAX_PHOTOS) {
         zoneErreur.textContent = `Maximum ${MAX_PHOTOS} photos par véhicule (retire-en avant d'en ajouter).`;
         return;
@@ -390,6 +402,13 @@
     function demarrerEcouteVehicules() {
       arreterEcoute = onSnapshot(refCollection, (snapshot) => {
         vehiculesParId.clear();
+
+        const total = snapshot.size;
+        const limiteTexte = Number.isFinite(LIMITE_VEHICULES) ? `${total} / ${LIMITE_VEHICULES}` : `${total}`;
+        titreListe.textContent = `Véhicules enregistrés (${limiteTexte})`;
+        if (Number.isFinite(LIMITE_VEHICULES) && total >= LIMITE_VEHICULES) {
+          titreListe.innerHTML += ` <span style="color:#dc2626; font-weight:600;">— limite atteinte</span>`;
+        }
 
         if (snapshot.empty) {
           zoneListe.innerHTML = `<div class="vide">Aucun véhicule pour le moment — ajoute-en un ci-dessus.</div>`;
